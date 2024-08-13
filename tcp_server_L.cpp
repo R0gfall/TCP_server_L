@@ -23,8 +23,10 @@ int get_information_from_client(int cs)
         return -1;
     }
 
+    printf("SMT for commit!");
     printf("%s\n", int_recv_buffer);
-    return 1;
+    return -1;
+    
 
     // send number message
 
