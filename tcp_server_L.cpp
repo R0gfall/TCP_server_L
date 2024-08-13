@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -9,17 +10,21 @@
 
 int get_information_from_client(int cs)
 {
-    
+    return 0;
 }
 
 
-
+int set_non_block_mode(int s)
+{
+int fl = fcntl(s, F_GETFL, 0);
+return fcntl(s, F_SETFL, fl | O_NONBLOCK);
+}
 
 
 int main()
 {
     int connectSocket = -1;
-    struct sockaddr_in addr;
+    struct sockaddr_in addr = {0};
     printf("1111\n");
 
     connectSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -31,15 +36,16 @@ int main()
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(9000);
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    //addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    int result_bind = bind(connectSocket, (struct sockaddr*) &addr, sizeof(addr));
+    //printf("%d\n", result_bind);
 
-
-    if (bind(connectSocket, (struct sockaddr*) &addr, sizeof(addr)) < 0){
+    if (result_bind < 0){
         printf("ERROR BIND SOCKET TO ADDRESS\n");
         return -1;
     }
 
-    if (listen(connectSocket, 1) < 0){
+    if (listen(connectSocket, 10) < 0){
         printf("ERROR LISTEN SOCKET\n");
         return -1;
     }
