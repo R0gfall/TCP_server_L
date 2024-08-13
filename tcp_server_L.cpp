@@ -6,11 +6,29 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 
 int get_information_from_client(int cs)
 {
-    return 0;
+    //char* int_recv_buffer = (char*)malloc(sizeof(int));
+    char int_recv_buffer[10]; 
+    int result_recv;
+    char fb_msg[] = "put";
+    
+    // send first msg PUT
+
+    if (result_recv = recv(cs, int_recv_buffer, sizeof(char) * 3, 0) < 0){
+        printf("ERROR PUT MESSAGE\n");
+        return -1;
+    }
+
+    printf("%s\n", int_recv_buffer);
+    return 1;
+
+    // send number message
+
+
 }
 
 
@@ -25,7 +43,6 @@ int main()
 {
     int connectSocket = -1;
     struct sockaddr_in addr = {0};
-    printf("1111\n");
 
     connectSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (connectSocket < 0){
@@ -37,8 +54,8 @@ int main()
     addr.sin_family = AF_INET;
     addr.sin_port = htons(9000);
     //addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
     int result_bind = bind(connectSocket, (struct sockaddr*) &addr, sizeof(addr));
-    //printf("%d\n", result_bind);
 
     if (result_bind < 0){
         printf("ERROR BIND SOCKET TO ADDRESS\n");
@@ -50,7 +67,6 @@ int main()
         return -1;
     }
 
-    printf("22222\n");
 
     do {
         socklen_t addrlen = sizeof(addr);
@@ -69,6 +85,8 @@ int main()
             (ip_client >> 24) & 0xFF, (ip_client >> 16) & 0xFF, (ip_client >> 8) & 0xFF, (ip_client) & 0xFF);
 
         // GEt information from tcp_client
+
+        get_information_from_client(cs);
 
         // func to get string
 
