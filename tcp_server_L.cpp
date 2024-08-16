@@ -43,6 +43,7 @@ return fcntl(s, F_SETFL, fl | O_NONBLOCK);
 
 int main()
 {
+    printf("1234\n");
     int connectSocket = -1;
     struct sockaddr_in addr = {0};
 
@@ -69,19 +70,21 @@ int main()
         return -1;
     }
 
-
+    printf("1234\n");
     do {
         socklen_t addrlen = sizeof(addr);
+        //printf("1234\n");
         int cs = accept(connectSocket, (struct sockaddr*) &addr, &addrlen);
         unsigned int ip_client;
 
-
+        printf("1234\n");
 
         if (cs < 0){
             printf("ERROR ACCEPT CONNECT CLIENT\n");
             return -1;
         }
 
+        printf(">>WARNING\n");
         ip_client = ntohl(addr.sin_addr.s_addr);
         printf(" Client connected: %u.%u.%u.%u ", 
             (ip_client >> 24) & 0xFF, (ip_client >> 16) & 0xFF, (ip_client >> 8) & 0xFF, (ip_client) & 0xFF);
