@@ -15,10 +15,20 @@
 
 
 // add func to send OK
+int send_ok(int cs)
+{
+    const char ok_msg[] = "ok";
+    int send_bytes;
 
-
-//...
-
+    send_bytes = send(cs, ok_msg, sizeof(ok_msg), 0);
+    if (send_bytes < 0){
+        printf("ERROR SEND OK MSG\n");
+        return -1;
+    }
+    
+    printf("OK MSG SEND\n");
+    return 1;
+}
 
 
 int get_information_from_client(int cs)
@@ -48,14 +58,23 @@ int get_information_from_client(int cs)
     if (strcmp(result_recv, fb_msg)){
         printf("PUT GOT IT\n");
 
-        //func to send ok
+        // //func to send ok
+        // if (send_ok(cs) == -1){
+        //     printf("ERROR SENDOK FUNC\n");
+        //     return -1;
+        // }
+
 
     }
 
     elif (strcmp(recv_buffer_PG, "get")){
         printf("GET GOT IT\n");
 
-        //func to send ok
+        // //func to send ok
+        // if (send_ok(cs) == -1){
+        //     printf("ERROR SENDOK FUNC\n");
+        //     return -1;
+        // }
 
     }
 
@@ -71,6 +90,10 @@ int get_information_from_client(int cs)
         printf("NUMBER OF MESSAGE GOT IT\n");
 
         //func to send ok
+        if (send_ok(cs) == -1){
+            printf("ERROR SENDOK FUNC\n");
+            return -1;
+        }
 
     }
 
@@ -89,7 +112,13 @@ int get_information_from_client(int cs)
 
         // func to write data (need translate code htons or htonl)
 
+
+
         // func to send ok
+        if (send_ok(cs) == -1){
+            printf("ERROR SENDOK FUNC\n");
+            return -1;
+        }
 
     }
     
@@ -109,6 +138,10 @@ int get_information_from_client(int cs)
         // func to write time (need translate code htons or htonl)
 
         // func to send ok
+        if (send_ok(cs) == -1){
+            printf("ERROR SENDOK FUNC\n");
+            return -1;
+        }
 
     }
 
@@ -127,6 +160,10 @@ int get_information_from_client(int cs)
         // func to write time 2 (need translate code htons or htonl)
 
         // func to send ok
+        if (send_ok(cs) == -1){
+            printf("ERROR SENDOK FUNC\n");
+            return -1;
+        }
 
     }
 
@@ -146,12 +183,18 @@ int get_information_from_client(int cs)
 
 
         // func to send ok
+        if (send_ok(cs) == -1){
+            printf("ERROR SENDOK FUNC\n");
+            return -1;
+        }
 
     }
 
 
 
-    
+
+
+
 
 
 
