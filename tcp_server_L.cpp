@@ -86,6 +86,7 @@ int main()
         FD_ZERO(&wfd);
 
         FD_SET(connectSocket, &rfd);
+        
 
         for (int i = 0; i < N; i++){
             FD_SET(array_connectSockets[i], &rfd);
