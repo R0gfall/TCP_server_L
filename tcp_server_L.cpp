@@ -14,21 +14,41 @@
 int get_information_from_client(int cs)
 {
     //char* int_recv_buffer = (char*)malloc(sizeof(int));
-    char int_recv_buffer[10]; 
+    char recv_buffer_PG[3];
+    
+    // maybe need to change char to integer
+
+    char int_recv_buffer[4] = {0};
+
+
     int result_recv;
     char fb_msg[] = "put";
     
     // send first msg PUT
 
-    if (result_recv = recv(cs, int_recv_buffer, sizeof(char) * 3, 0) < 0){
+    if (result_recv = recv(cs, recv_buffer_PG, sizeof(recv_buffer_PG), 0) < 0){
         printf("ERROR PUT MESSAGE\n");
         return -1;
     }
 
-    printf("SMT for commit!");
-    printf("%s\n", int_recv_buffer);
-    return -1;
     
+
+
+    //printf("SMT for commit!");
+    //printf("%s\n", int_recv_buffer);
+
+
+    result_recv = recv(cs, );
+
+
+
+
+    // well 
+    return 1;
+    
+    
+
+
 
     // send number message
 
