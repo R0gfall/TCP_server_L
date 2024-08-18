@@ -8,6 +8,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define N 10
+
 
 int get_information_from_client(int cs)
 {
@@ -43,9 +45,15 @@ return fcntl(s, F_SETFL, fl | O_NONBLOCK);
 
 int main()
 {
-    printf("1234\n");
+
     int connectSocket = -1;
     struct sockaddr_in addr = {0};
+    int array_connectSockets[N];
+    fd_set rfd;
+    fd_set wfd;
+    int maxDescriptor = 0;
+    struct timeval timeValue = {1, 0};
+    int count_arraySockets = 0;
 
     connectSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (connectSocket < 0){
@@ -71,27 +79,83 @@ int main()
     }
 
     printf("1234\n");
-    do {
-        socklen_t addrlen = sizeof(addr);
-        //printf("1234\n");
-        int cs = accept(connectSocket, (struct sockaddr*) &addr, &addrlen);
-        unsigned int ip_client;
+    while(1) {
 
-        printf("1234\n");
+        // select code 
+        FD_ZERO(&rfd);
+        FD_ZERO(&wfd);
 
-        if (cs < 0){
-            printf("ERROR ACCEPT CONNECT CLIENT\n");
-            return -1;
+        FD_SET(connectSocket, &rfd);
+
+        for (int i = 0; i < N; i++){
+            FD_SET(array_connectSockets[i], &rfd);
+            FD_SET(array_connectSockets[i], &wfd);
+            if (maxDescriptor < array_connectSockets[i])
+                maxDescriptor = array_connectSockets[i];
         }
 
-        printf(">>WARNING\n");
-        ip_client = ntohl(addr.sin_addr.s_addr);
-        printf(" Client connected: %u.%u.%u.%u ", 
-            (ip_client >> 24) & 0xFF, (ip_client >> 16) & 0xFF, (ip_client >> 8) & 0xFF, (ip_client) & 0xFF);
+    
+        if (select(maxDescriptor + 1, &rfd, &wfd, 0, &timeValue) > 0){
 
-        // GEt information from tcp_client
+            if (FD_ISSET(connectSocket, &rfd)){
+                // accept func
+                socklen_t addrlen = sizeof(addr);
+                int cs = accept(connectSocket, (struct sockaddr*) &addr, &addrlen);
+                if (cs < 0){
+                    printf("ERROR NOT ACCEPT FUNC\n");
+                }
 
-        get_information_from_client(cs);
+                printf("<<<get it accept\n");
+                
+
+                // add new socket to array_connectSockets
+                array_connectSockets[count_arraySockets] = cs;
+                count_arraySockets++;
+
+
+            }
+
+            for (int i = 0; i < N; i++){
+                if (FD_ISSET(array_connectSockets[i], &rfd)){
+                    // socket ready to read
+                    printf("ready to read\n");
+
+                }
+
+                if (FD_ISSET(array_connectSockets[i], &wfd)){
+                    // socket ready to write
+                    printf("ready to write\n");
+
+                }
+            }
+
+        }
+        else {
+
+            printf("ERROR WHILE!\n");
+        }
+        
+
+        //socklen_t addrlen = sizeof(addr);
+        
+        // int cs = accept(connectSocket, (struct sockaddr*) &addr, &sizeof(addr));
+        // unsigned int ip_client;
+
+        // printf("1234\n");
+
+        // if (cs < 0){
+        //     printf("ERROR ACCEPT CONNECT CLIENT\n");
+        //     return -1;
+        // }
+
+        // printf(">>WARNING\n");
+        // ip_client = ntohl(addr.sin_addr.s_addr);
+        // printf(" Client connected: %u.%u.%u.%u ", 
+        //     (ip_client >> 24) & 0xFF, (ip_client >> 16) & 0xFF, (ip_client >> 8) & 0xFF, (ip_client) & 0xFF);
+
+        // // GEt information from tcp_client
+
+        // get_information_from_client(cs);
 
         // func to get string
 
