@@ -11,14 +11,25 @@
 #define N 10
 
 
+//Need to push commit to github
+
+
+// add func to send OK
+
+
+//...
+
+
+
 int get_information_from_client(int cs)
 {
     //char* int_recv_buffer = (char*)malloc(sizeof(int));
-    char recv_buffer_PG[3];
+    char* recv_buffer_PG = (char*)malloc(sizeof(char)); // or ..sizeof(char * 3)
     
     // maybe need to change char to integer
 
-    char int_recv_buffer[4] = {0};
+    //char int_recv_buffer[4] = {0};
+    char* int_recv_buffer = (char*)malloc(sizeof(int)); // or int* int_recv_buffer = (int*)malloc(sizeof(int));
 
 
     int result_recv;
@@ -26,19 +37,129 @@ int get_information_from_client(int cs)
     
     // send first msg PUT
 
-    if (result_recv = recv(cs, recv_buffer_PG, sizeof(recv_buffer_PG), 0) < 0){
+    if ((result_recv = recv(cs, recv_buffer_PG, sizeof(char * 3)), 0) < 0){
         printf("ERROR PUT MESSAGE\n");
         return -1;
     }
+    
+    recv_buffer_PG[result_recv] = "\0";
+
+
+    if (strcmp(result_recv, fb_msg)){
+        printf("PUT GOT IT\n");
+
+        //func to send ok
+
+    }
+
+    elif (strcmp(recv_buffer_PG, "get")){
+        printf("GET GOT IT\n");
+
+        //func to send ok
+
+    }
+
+    // get number message
+
+    result_recv = recv(cs, int_recv_buffer, sizeog(int), 0);
+
+    if (result_recv < 0){
+        printf("ERROR NUMBER MESSAGE\n");
+        return -1;
+    }
+    else{
+        printf("NUMBER OF MESSAGE GOT IT\n");
+
+        //func to send ok
+
+    }
+
+
+    // get data information
+
+    result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
+
+    if (result_recv < 0){
+        printf("ERROR GET DATA INFO\n");
+        return -1;
+    }
+
+    else{
+        printf("DATE GOT IT\n");
+
+        // func to write data (need translate code htons or htonl)
+
+        // func to send ok
+
+    }
+    
+
+    // get time 1 information
+
+    result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
+
+    if (result_recv < 0){
+        printf("ERROR GET TIME INFO\n");
+        return -1;
+    }
+
+    else{
+        printf("TIME GOT IT\n");
+
+        // func to write time (need translate code htons or htonl)
+
+        // func to send ok
+
+    }
+
+    // get time 2 information
+
+    result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
+
+    if (result_recv < 0){
+        printf("ERROR TIME 2 INFO\n");
+        return -1;
+    }
+
+    else{
+        printf("TIME 2 GOT IT\n");
+
+        // func to write time 2 (need translate code htons or htonl)
+
+        // func to send ok
+
+    }
+
+    // lendata 
+
+    result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
+
+    if (result_recv < 0){
+        printf("ERROR LEN MSG\n");
+        return -1;
+    }
+
+    else{
+        printf("LEN MSG GOT IT\n");
+
+        // func to write len message or create value with need buffer;
+
+
+        // func to send ok
+
+    }
+
+
 
     
+
 
 
     //printf("SMT for commit!");
     //printf("%s\n", int_recv_buffer);
 
 
-    result_recv = recv(cs, );
+    //result_recv = recv(cs, );
 
 
 
