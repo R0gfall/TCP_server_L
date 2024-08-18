@@ -48,10 +48,10 @@ int main()
 
     int connectSocket = -1;
     struct sockaddr_in addr = {0};
-    int array_connectSockets[N];
+    int array_connectSockets[N] = {-1};
     fd_set rfd;
     fd_set wfd;
-    int maxDescriptor = 0;
+    int maxDescriptor = connectSocket;
     struct timeval timeValue = {1, 0};
     int count_arraySockets = 0;
 
@@ -101,6 +101,7 @@ int main()
                 // accept func
                 socklen_t addrlen = sizeof(addr);
                 int cs = accept(connectSocket, (struct sockaddr*) &addr, &addrlen);
+                printf("%d\n", cs);
                 if (cs < 0){
                     printf("ERROR NOT ACCEPT FUNC\n");
                 }
@@ -116,13 +117,13 @@ int main()
             }
 
             for (int i = 0; i < N; i++){
-                if (FD_ISSET(array_connectSockets[i], &rfd)){
+                if ((array_connectSockets[i] > 0) && (FD_ISSET(array_connectSockets[i], &rfd))){
                     // socket ready to read
                     printf("ready to read\n");
 
                 }
 
-                if (FD_ISSET(array_connectSockets[i], &wfd)){
+                if ((array_connectSockets[i] > 0) && FD_ISSET(array_connectSockets[i], &wfd)){
                     // socket ready to write
                     printf("ready to write\n");
 
