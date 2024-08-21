@@ -34,7 +34,7 @@ int send_ok(int cs)
 int get_information_from_client(int cs)
 {
     //char* int_recv_buffer = (char*)malloc(sizeof(int));
-    char* recv_buffer_PG = (char*)malloc(sizeof(char)); // or ..sizeof(char * 3)
+    char* recv_buffer_PG = (char*)malloc(sizeof(char) * 3); // or ..sizeof(char * 3)
     
     // maybe need to change char to integer
 
@@ -47,15 +47,15 @@ int get_information_from_client(int cs)
     
     // send first msg PUT
 
-    if ((result_recv = recv(cs, recv_buffer_PG, sizeof(char * 3)), 0) < 0){
+    if (result_recv = recv(cs, recv_buffer_PG, (sizeof(char) * 3), 0) < 0){
         printf("ERROR PUT MESSAGE\n");
         return -1;
     }
     
-    recv_buffer_PG[result_recv] = "\0";
+    recv_buffer_PG[result_recv] = '\0';
 
 
-    if (strcmp(result_recv, fb_msg)){
+    if (strcmp(recv_buffer_PG, fb_msg)){
         printf("PUT GOT IT\n");
 
         // //func to send ok
@@ -67,7 +67,7 @@ int get_information_from_client(int cs)
 
     }
 
-    elif (strcmp(recv_buffer_PG, "get")){
+    else if (strcmp(recv_buffer_PG, "get")){
         printf("GET GOT IT\n");
 
         // //func to send ok
@@ -80,7 +80,7 @@ int get_information_from_client(int cs)
 
     // get number message
 
-    result_recv = recv(cs, int_recv_buffer, sizeog(int), 0);
+    result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
 
     if (result_recv < 0){
         printf("ERROR NUMBER MESSAGE\n");
@@ -279,9 +279,12 @@ int main()
                 maxDescriptor = array_connectSockets[i];
         }
 
-    
-        if (select(maxDescriptor + 1, &rfd, &wfd, 0, &timeValue) > 0){
+        
+        int result_select = select(maxDescriptor + 1, &rfd, &wfd, 0, &timeValue);
 
+        if (result_select > 0){
+            //printf("<<<<<<<<<<<<<\n");
+            printf("%d\n", result_select);
             if (FD_ISSET(connectSocket, &rfd)){
                 // accept func
                 socklen_t addrlen = sizeof(addr);
@@ -305,12 +308,14 @@ int main()
                 if ((array_connectSockets[i] > 0) && (FD_ISSET(array_connectSockets[i], &rfd))){
                     // socket ready to read
                     printf("ready to read\n");
+                    get_information_from_client(array_connectSockets[i]);
 
                 }
 
                 if ((array_connectSockets[i] > 0) && FD_ISSET(array_connectSockets[i], &wfd)){
                     // socket ready to write
                     printf("ready to write\n");
+                    get_information_from_client(array_connectSockets[i]);
 
                 }
             }
