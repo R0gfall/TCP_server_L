@@ -11,6 +11,13 @@
 #define N 10
 
 
+
+int set_non_block_mode(int s)
+{
+    int fl = fcntl(s, F_GETFL, 0);
+    return fcntl(s, F_SETFL, fl | O_NONBLOCK);
+}
+
 //Need to push commit to github
 
 
@@ -30,6 +37,61 @@ int send_ok(int cs)
     return 1;
 }
 
+/*
+int get_information_from_client(int cs) {
+    char recv_buffer_PG[4] = {0};  // Размер 4, чтобы вместить 3 символа и нуль-терминатор
+    int int_recv_buffer;
+    int result_recv;
+    const char fb_msg[] = "put";
+    
+    // Получаем команду ("put" или "get")
+    if ((result_recv = recv(cs, recv_buffer_PG, 3, 0)) < 0) {
+        printf("ERROR PUT MESSAGE\n");
+        return -1;
+    }
+    
+    recv_buffer_PG[result_recv] = '\0';  // Завершаем строку
+
+    if (strcmp(recv_buffer_PG, fb_msg) == 0) {
+        printf("PUT GOT IT\n");
+    } else if (strcmp(recv_buffer_PG, "get") == 0) {
+        printf("GET GOT IT\n");
+    } else {
+        printf("Unknown command: %s\n", recv_buffer_PG);
+        return -1;
+    }
+
+    // Получаем число
+    if ((result_recv = recv(cs, &int_recv_buffer, sizeof(int_recv_buffer), 0)) < 0) {
+        printf("ERROR NUMBER MESSAGE\n");
+        return -1;
+    }
+
+    int lenData = ntohl(int_recv_buffer);
+    printf("Received number: %d\n", lenData);
+
+    // Здесь вы можете обработать полученное число и использовать его
+
+    // Получаем сообщение указанной длины
+    char *buffer_message = (char*)malloc(lenData + 1);
+    if (!buffer_message) {
+        printf("Memory allocation error\n");
+        return -1;
+    }
+
+    if ((result_recv = recv(cs, buffer_message, lenData, 0)) < 0) {
+        printf("ERROR MESSAGE RECEIVE\n");
+        free(buffer_message);
+        return -1;
+    }
+    
+    buffer_message[lenData] = '\0';  // Завершаем строку
+    printf("MESSAGE GOT IT: %s\n", buffer_message);
+
+    free(buffer_message);
+    return 1;
+}
+*/
 
 int get_information_from_client(int cs)
 {
@@ -171,13 +233,16 @@ int get_information_from_client(int cs)
 
     result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
 
+    
+    int lenData = ntohl(atoi(int_recv_buffer));
+
     if (result_recv < 0){
         printf("ERROR LEN MSG\n");
         return -1;
     }
 
     else{
-        printf("LEN MSG GOT IT\n");
+        printf("LEN MSG GOT IT: %d\n", lenData);
 
         // func to write len message or create value with need buffer;
 
@@ -191,6 +256,13 @@ int get_information_from_client(int cs)
     }
 
 
+    // message
+    
+    char *buffer_message = (char*)malloc(sizeof(char) * lenData + 1);
+
+    result_recv = recv(cs, buffer_message, sizeof(char) * lenData, 0);
+    printf("MESSAGE GOT IT: %d bytes\n", result_recv);
+    printf("%s\n", buffer_message);
 
 
 
@@ -220,13 +292,6 @@ int get_information_from_client(int cs)
 }
 
 
-int set_non_block_mode(int s)
-{
-int fl = fcntl(s, F_GETFL, 0);
-return fcntl(s, F_SETFL, fl | O_NONBLOCK);
-}
-
-
 int main()
 {
 
@@ -245,6 +310,9 @@ int main()
         return -1;
     }
 
+    //set_non_block_mode(connectSocket);
+
+
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(9000);
@@ -262,7 +330,6 @@ int main()
         return -1;
     }
 
-    printf("1234\n");
     while(1) {
 
         // select code 
@@ -296,6 +363,10 @@ int main()
                 if (cs < 0){
                     printf("ERROR NOT ACCEPT FUNC\n");
                 }
+
+                // mb error, need to write log
+                //set_non_block_mode(cs);
+
 
                 printf("<<<get it accept\n");
                 
