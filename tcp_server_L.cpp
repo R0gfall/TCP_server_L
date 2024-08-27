@@ -272,11 +272,14 @@ int main()
         FD_SET(connectSocket, &rfd);
         
 
-        for (int i = 0; i < N; i++){
-            FD_SET(array_connectSockets[i], &rfd);
-            FD_SET(array_connectSockets[i], &wfd);
-            if (maxDescriptor < array_connectSockets[i])
-                maxDescriptor = array_connectSockets[i];
+        maxDescriptor = connectSocket;  // Сброс maxDescriptor перед каждым вызовом select
+        for (int i = 0; i < N; i++) {
+            if (array_connectSockets[i] > 0) {
+                FD_SET(array_connectSockets[i], &rfd);
+                FD_SET(array_connectSockets[i], &wfd);
+                if (maxDescriptor < array_connectSockets[i])
+                    maxDescriptor = array_connectSockets[i];
+            }
         }
 
         
@@ -284,12 +287,12 @@ int main()
 
         if (result_select > 0){
             //printf("<<<<<<<<<<<<<\n");
-            printf("%d\n", result_select);
+            //printf("%d\n", result_select);
             if (FD_ISSET(connectSocket, &rfd)){
                 // accept func
                 socklen_t addrlen = sizeof(addr);
                 int cs = accept(connectSocket, (struct sockaddr*) &addr, &addrlen);
-                printf("%d\n", cs);
+                printf("Numbers of sockets: %d\n", cs);
                 if (cs < 0){
                     printf("ERROR NOT ACCEPT FUNC\n");
                 }
@@ -321,10 +324,10 @@ int main()
             }
 
         }
-        else {
+    //else {
 
-            printf("ERROR WHILE!\n");
-        }
+     //   printf("ERROR WHILE!\n");
+    //}
         
 
         //socklen_t addrlen = sizeof(addr);
@@ -357,7 +360,6 @@ int main()
 
     }
 
-    while (1);
 
     
 
