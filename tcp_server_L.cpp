@@ -40,72 +40,27 @@ int send_ok(int cs)
 }
 
 
-int convert_str_to_int(char* string_number)
-{
-   /*  int integer_number = atoi(string_number);
-    printf("== %s\n", string_number); */
+void convert_date(uint32_t number, char *date_str) {
+    // Извлекаем день, месяц и год
+    uint32_t day = number % 100;
+    uint32_t month = (number / 100) % 100;
+    uint32_t year = number / 10000;
 
-    //int integer_number = ntohl((uint32_t)string_number); 
-    return 1;
-
+    // Форматируем строку как "dd.mm.yyyy"
+    sprintf(date_str, "%02u.%02u.%04u", day, month, year);
 }
 
 
-/*
-int get_information_from_client(int cs) {
-    char recv_buffer_PG[4] = {0};  // Размер 4, чтобы вместить 3 символа и нуль-терминатор
-    int int_recv_buffer;
-    int result_recv;
-    const char fb_msg[] = "put";
-    
-    // Получаем команду ("put" или "get")
-    if ((result_recv = recv(cs, recv_buffer_PG, 3, 0)) < 0) {
-        printf("ERROR PUT MESSAGE\n");
-        return -1;
-    }
-    
-    recv_buffer_PG[result_recv] = '\0';  // Завершаем строку
+void convert_time(uint32_t number, char *time_str) {
+    // Извлекаем секунды, минуты и часы
+    uint32_t seconds = number % 100;
+    uint32_t minutes = (number / 100) % 100;
+    uint32_t hours = number / 10000;
 
-    if (strcmp(recv_buffer_PG, fb_msg) == 0) {
-        printf("PUT GOT IT\n");
-    } else if (strcmp(recv_buffer_PG, "get") == 0) {
-        printf("GET GOT IT\n");
-    } else {
-        printf("Unknown command: %s\n", recv_buffer_PG);
-        return -1;
-    }
-
-    // Получаем число
-    if ((result_recv = recv(cs, &int_recv_buffer, sizeof(int_recv_buffer), 0)) < 0) {
-        printf("ERROR NUMBER MESSAGE\n");
-        return -1;
-    }
-
-    int lenData = ntohl(int_recv_buffer);
-    printf("Received number: %d\n", lenData);
-
-    // Здесь вы можете обработать полученное число и использовать его
-
-    // Получаем сообщение указанной длины
-    char *buffer_message = (char*)malloc(lenData + 1);
-    if (!buffer_message) {
-        printf("Memory allocation error\n");
-        return -1;
-    }
-
-    if ((result_recv = recv(cs, buffer_message, lenData, 0)) < 0) {
-        printf("ERROR MESSAGE RECEIVE\n");
-        free(buffer_message);
-        return -1;
-    }
-    
-    buffer_message[lenData] = '\0';  // Завершаем строку
-    printf("MESSAGE GOT IT: %s\n", buffer_message);
-
-    free(buffer_message);
-    return 1;
+    // Форматируем строку как "hh:mm:ss"
+    sprintf(time_str, "%02u:%02u:%02u", hours, minutes, seconds);
 }
-*/
+
 
 int get_information_from_client(int cs)
 {
@@ -114,12 +69,12 @@ int get_information_from_client(int cs)
     
     // maybe need to change char to integer
 
-    //char int_recv_buffer[4] = {0};
     char* int_recv_buffer = (char*)malloc(sizeof(int)); // or int* int_recv_buffer = (int*)malloc(sizeof(int));
 
 
     int result_recv, number;
     char fb_msg[] = "put";
+    char date_str[11], time_str[9];
     
     // send first msg PUT
 
@@ -141,15 +96,12 @@ int get_information_from_client(int cs)
 
     }
 
+
     // get number message
+
     uint32_t avd;
 
-
-
     result_recv = recv(cs, &avd, sizeof(int), 0);
-
-    
-
 
     if (result_recv < 0){
         printf("ERROR NUMBER MESSAGE\n");
@@ -157,13 +109,7 @@ int get_information_from_client(int cs)
     }
     else{
 
-        //number = atoi(int_recv_buffer);
-        //printf("%s\n", avd);
-
-        printf("%s\n", avd);
-        //number = convert_str_to_int(avd);
-
-        printf("NUMBER OF MESSAGE GOT IT: %d, <<%d\n", number, result_recv);
+        printf("NUMBER OF MESSAGE GOT IT: %d, %d bytes\n", ntohl(avd), result_recv);
 
         //func to send ok
         /* if (send_ok(cs) == -1){
@@ -178,19 +124,23 @@ int get_information_from_client(int cs)
 
     result_recv = recv(cs, &avd, sizeof(int), 0);
 
-    printf("%d\n", avd);
+    //printf("%d\n", avd);
     if (result_recv < 0){
-        printf("ERROR GET DATA INFO\n");
+        printf("ERROR GET DATE INFO\n");
         return -1;
     }
 
     else{
 
+        
+        convert_date(ntohl(avd), date_str);
 
-        printf(">>>%d, !!!%d\n", result_recv, ntohl(avd));
+        //printf(">>>%d, !!!%s\n", result_recv, date_str);
 
         //number = convert_str_to_int(avd);
-        printf("DATE GOT IT: %d\n", number);
+
+
+        printf("DATE GOT IT: %s, %d\nbytes", date_str, result_recv);
 
         // func to write data (need translate code htons or htonl)
 
@@ -217,7 +167,9 @@ int get_information_from_client(int cs)
     else{
 
         //number = convert_str_to_int(avd);
-        printf("TIME GOT IT: %d\n", number);
+        convert_time(ntohl(avd), time_str);
+
+        printf("TIME GOT IT: %s, %d bytes\n", time_str, result_recv);
 
         // func to write time (need translate code htons or htonl)
 
@@ -231,7 +183,7 @@ int get_information_from_client(int cs)
 
     // get time 2 information
 
-    result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
+    result_recv = recv(cs, &avd, sizeof(int), 0);
 
     if (result_recv < 0){
         printf("ERROR TIME 2 INFO\n");
@@ -240,8 +192,9 @@ int get_information_from_client(int cs)
 
     else{
 
-        number = convert_str_to_int(int_recv_buffer);
-        printf("TIME 2 GOT IT: %d\n", number);
+        convert_time(ntohl(avd), time_str);
+
+        printf("TIME GOT IT: %s, %d bytes\n", time_str, result_recv);
 
         // func to write time 2 (need translate code htons or htonl)
 
@@ -255,10 +208,10 @@ int get_information_from_client(int cs)
 
     // lendata 
 
-    result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
+    result_recv = recv(cs, &avd, sizeof(int), 0);
 
     
-    int lenData = convert_str_to_int(int_recv_buffer);
+    int lenData = ntohl(avd);
 
     if (result_recv < 0){
         printf("ERROR LEN MSG\n");
@@ -266,7 +219,7 @@ int get_information_from_client(int cs)
     }
 
     else{
-        printf("LEN MSG GOT IT: %d\n", lenData);
+        printf("LEN MSG GOT IT: %d, %d bytes\n", lenData, result_recv);
 
         // func to write len message or create value with need buffer;
 
@@ -281,9 +234,6 @@ int get_information_from_client(int cs)
 
 
     // message
-    
-    lenData = 10;
-
 
     char *buffer_message = (char*)malloc(sizeof(char) * lenData + 1);
 
@@ -296,7 +246,7 @@ int get_information_from_client(int cs)
 
 
 
-    close(cs);
+    //close(cs);
     //printf("SMT for commit!");
     //printf("%s\n", int_recv_buffer);
 
