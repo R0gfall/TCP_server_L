@@ -3,12 +3,14 @@
 #include <netdb.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #define N 10
+#define PORT 9000
 
 
 
@@ -36,6 +38,18 @@ int send_ok(int cs)
     printf("OK MSG SEND\n");
     return 1;
 }
+
+
+int convert_str_to_int(char* string_number)
+{
+   /*  int integer_number = atoi(string_number);
+    printf("== %s\n", string_number); */
+
+    //int integer_number = ntohl((uint32_t)string_number); 
+    return 1;
+
+}
+
 
 /*
 int get_information_from_client(int cs) {
@@ -104,12 +118,12 @@ int get_information_from_client(int cs)
     char* int_recv_buffer = (char*)malloc(sizeof(int)); // or int* int_recv_buffer = (int*)malloc(sizeof(int));
 
 
-    int result_recv;
+    int result_recv, number;
     char fb_msg[] = "put";
     
     // send first msg PUT
 
-    if (result_recv = recv(cs, recv_buffer_PG, (sizeof(char) * 3), 0) < 0){
+    if ((result_recv = recv(cs, recv_buffer_PG, (sizeof(char) * 3), 0)) < 0){
         printf("ERROR PUT MESSAGE\n");
         return -1;
     }
@@ -117,77 +131,83 @@ int get_information_from_client(int cs)
     recv_buffer_PG[result_recv] = '\0';
 
 
-    if (strcmp(recv_buffer_PG, fb_msg)){
-        printf("PUT GOT IT\n");
-
-        // //func to send ok
-        // if (send_ok(cs) == -1){
-        //     printf("ERROR SENDOK FUNC\n");
-        //     return -1;
-        // }
-
+    if (strcmp(recv_buffer_PG, fb_msg) == 0){
+        printf("PUT GOT IT: %s\n", recv_buffer_PG);
 
     }
 
     else if (strcmp(recv_buffer_PG, "get")){
-        printf("GET GOT IT\n");
-
-        // //func to send ok
-        // if (send_ok(cs) == -1){
-        //     printf("ERROR SENDOK FUNC\n");
-        //     return -1;
-        // }
+        printf("GET GOT IT: %s\n", recv_buffer_PG);
 
     }
 
     // get number message
+    uint32_t avd;
 
-    result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
+
+
+    result_recv = recv(cs, &avd, sizeof(int), 0);
+
+    
+
 
     if (result_recv < 0){
         printf("ERROR NUMBER MESSAGE\n");
         return -1;
     }
     else{
-        printf("NUMBER OF MESSAGE GOT IT\n");
+
+        //number = atoi(int_recv_buffer);
+        //printf("%s\n", avd);
+
+        printf("%s\n", avd);
+        //number = convert_str_to_int(avd);
+
+        printf("NUMBER OF MESSAGE GOT IT: %d, <<%d\n", number, result_recv);
 
         //func to send ok
-        if (send_ok(cs) == -1){
+        /* if (send_ok(cs) == -1){
             printf("ERROR SENDOK FUNC\n");
             return -1;
         }
-
+ */
     }
 
 
-    // get data information
+    // get date information
 
-    result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
+    result_recv = recv(cs, &avd, sizeof(int), 0);
 
+    printf("%d\n", avd);
     if (result_recv < 0){
         printf("ERROR GET DATA INFO\n");
         return -1;
     }
 
     else{
-        printf("DATE GOT IT\n");
+
+
+        printf(">>>%d, !!!%d\n", result_recv, ntohl(avd));
+
+        //number = convert_str_to_int(avd);
+        printf("DATE GOT IT: %d\n", number);
 
         // func to write data (need translate code htons or htonl)
 
 
 
         // func to send ok
-        if (send_ok(cs) == -1){
+     /* if (send_ok(cs) == -1){
             printf("ERROR SENDOK FUNC\n");
             return -1;
-        }
+        } */
 
     }
     
 
     // get time 1 information
 
-    result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
+    result_recv = recv(cs, &avd, sizeof(int), 0);
 
     if (result_recv < 0){
         printf("ERROR GET TIME INFO\n");
@@ -195,15 +215,17 @@ int get_information_from_client(int cs)
     }
 
     else{
-        printf("TIME GOT IT\n");
+
+        //number = convert_str_to_int(avd);
+        printf("TIME GOT IT: %d\n", number);
 
         // func to write time (need translate code htons or htonl)
 
         // func to send ok
-        if (send_ok(cs) == -1){
+        /* if (send_ok(cs) == -1){
             printf("ERROR SENDOK FUNC\n");
             return -1;
-        }
+        } */
 
     }
 
@@ -217,15 +239,17 @@ int get_information_from_client(int cs)
     }
 
     else{
-        printf("TIME 2 GOT IT\n");
+
+        number = convert_str_to_int(int_recv_buffer);
+        printf("TIME 2 GOT IT: %d\n", number);
 
         // func to write time 2 (need translate code htons or htonl)
 
         // func to send ok
-        if (send_ok(cs) == -1){
+        /* if (send_ok(cs) == -1){
             printf("ERROR SENDOK FUNC\n");
             return -1;
-        }
+        } */
 
     }
 
@@ -234,7 +258,7 @@ int get_information_from_client(int cs)
     result_recv = recv(cs, int_recv_buffer, sizeof(int), 0);
 
     
-    int lenData = ntohl(atoi(int_recv_buffer));
+    int lenData = convert_str_to_int(int_recv_buffer);
 
     if (result_recv < 0){
         printf("ERROR LEN MSG\n");
@@ -248,16 +272,19 @@ int get_information_from_client(int cs)
 
 
         // func to send ok
-        if (send_ok(cs) == -1){
+        /* if (send_ok(cs) == -1){
             printf("ERROR SENDOK FUNC\n");
             return -1;
-        }
+        } */
 
     }
 
 
     // message
     
+    lenData = 10;
+
+
     char *buffer_message = (char*)malloc(sizeof(char) * lenData + 1);
 
     result_recv = recv(cs, buffer_message, sizeof(char) * lenData, 0);
@@ -269,7 +296,7 @@ int get_information_from_client(int cs)
 
 
 
-
+    close(cs);
     //printf("SMT for commit!");
     //printf("%s\n", int_recv_buffer);
 
@@ -277,8 +304,8 @@ int get_information_from_client(int cs)
     //result_recv = recv(cs, );
 
 
-
-
+    
+    //s_close(cs);
     // well 
     return 1;
     
@@ -309,13 +336,13 @@ int main()
         printf("ERROR SOCKET CONNECT\n");
         return -1;
     }
-
-    //set_non_block_mode(connectSocket);
+    
+    set_non_block_mode(connectSocket);
 
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(9000);
+    addr.sin_port = htons(PORT);
     //addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     int result_bind = bind(connectSocket, (struct sockaddr*) &addr, sizeof(addr));
@@ -325,7 +352,7 @@ int main()
         return -1;
     }
 
-    if (listen(connectSocket, 10) < 0){
+    if (listen(connectSocket, 1) < 0){
         printf("ERROR LISTEN SOCKET\n");
         return -1;
     }
@@ -428,6 +455,7 @@ int main()
         // func to send "ok"
 
         // s_close(cs);
+        
 
     }
 
