@@ -342,7 +342,7 @@ int main()
                 }
 
                 // mb error, need to write log
-                //set_non_block_mode(cs);
+                set_non_block_mode(cs);
 
 
                 printf("<<<get it accept\n");
@@ -366,7 +366,12 @@ int main()
                 if ((array_connectSockets[i] > 0) && FD_ISSET(array_connectSockets[i], &wfd)){
                     // socket ready to write
                     printf("ready to write\n");
-                    get_information_from_client(array_connectSockets[i]);
+                    //get_information_from_client(array_connectSockets[i]);
+                    if (send_ok(array_connectSockets[i]) == -1){
+                        printf("ERROR SENDOK FUNC\n");
+                        return -1;
+                    }
+
 
                 }
             }
