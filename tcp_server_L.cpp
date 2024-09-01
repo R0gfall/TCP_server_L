@@ -140,7 +140,7 @@ int get_information_from_client(int cs)
         //number = convert_str_to_int(avd);
 
 
-        printf("DATE GOT IT: %s, %d\nbytes", date_str, result_recv);
+        printf("DATE GOT IT: %s, %d bytes\n", date_str, result_recv);
 
         // func to write data (need translate code htons or htonl)
 
@@ -241,8 +241,12 @@ int get_information_from_client(int cs)
     printf("MESSAGE GOT IT: %d bytes\n", result_recv);
     printf("%s\n", buffer_message);
 
-
-
+    for (int i = 0; i < 2; i++){
+        if (send_ok(cs) == -1){
+                printf("ERROR SENDOK FUNC\n");
+                return -1;
+        } 
+    }
 
 
 
@@ -254,7 +258,9 @@ int get_information_from_client(int cs)
     //result_recv = recv(cs, );
 
 
-    
+    free(int_recv_buffer);
+    free(recv_buffer_PG);
+    free(buffer_message);
     //s_close(cs);
     // well 
     return 1;
@@ -330,8 +336,7 @@ int main()
         int result_select = select(maxDescriptor + 1, &rfd, &wfd, 0, &timeValue);
 
         if (result_select > 0){
-            //printf("<<<<<<<<<<<<<\n");
-            //printf("%d\n", result_select);
+            
             if (FD_ISSET(connectSocket, &rfd)){
                 // accept func
                 socklen_t addrlen = sizeof(addr);
@@ -342,7 +347,7 @@ int main()
                 }
 
                 // mb error, need to write log
-                set_non_block_mode(cs);
+                //set_non_block_mode(cs);
 
 
                 printf("<<<get it accept\n");
@@ -360,57 +365,29 @@ int main()
                     // socket ready to read
                     printf("ready to read\n");
                     get_information_from_client(array_connectSockets[i]);
+                    // FD_CLR(array_connectSockets[i], &rfd);
+                    // FD_CLR(array_connectSockets[i], &wfd);
 
                 }
 
                 if ((array_connectSockets[i] > 0) && FD_ISSET(array_connectSockets[i], &wfd)){
                     // socket ready to write
-                    printf("ready to write\n");
+                    //printf("ready to write\n");
                     //get_information_from_client(array_connectSockets[i]);
-                    if (send_ok(array_connectSockets[i]) == -1){
+                    /* if (send_ok(array_connectSockets[i]) == -1){
                         printf("ERROR SENDOK FUNC\n");
                         return -1;
-                    }
+                    } */
 
 
                 }
             }
 
         }
-    //else {
+        else{
+            //printf("ERROR SELECT >><<\n");
 
-     //   printf("ERROR WHILE!\n");
-    //}
-        
-
-        //socklen_t addrlen = sizeof(addr);
-        
-        // int cs = accept(connectSocket, (struct sockaddr*) &addr, &sizeof(addr));
-        // unsigned int ip_client;
-
-        // printf("1234\n");
-
-        // if (cs < 0){
-        //     printf("ERROR ACCEPT CONNECT CLIENT\n");
-        //     return -1;
-        // }
-
-        // printf(">>WARNING\n");
-        // ip_client = ntohl(addr.sin_addr.s_addr);
-        // printf(" Client connected: %u.%u.%u.%u ", 
-        //     (ip_client >> 24) & 0xFF, (ip_client >> 16) & 0xFF, (ip_client >> 8) & 0xFF, (ip_client) & 0xFF);
-
-        // // GEt information from tcp_client
-
-        // get_information_from_client(cs);
-
-        // func to get string
-
-
-        // func to send "ok"
-
-        // s_close(cs);
-        
+        }
 
     }
 
