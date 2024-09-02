@@ -10,10 +10,10 @@
 #include <stdlib.h>
 
 #define N 10
-#define PORT 9000
+#define PORT 9001
 #define GET_FLAG 1
 #define PUT_FLAG 2
-
+#define STOP_FLAG 1
 
 int PG_OPERATION = 0;
 
@@ -93,7 +93,17 @@ int first_put_or_get(int cs)
 
 }
 
+int stop_word(int cs, char* buffer, int lenData)
+{
+    
+    buffer[lenData] = '\0';
+    if (strcmp(buffer, "stop") == 0){
+        printf("FIND STOP: %s\n", buffer);
+        return STOP_FLAG; 
+    }
 
+    return -1;
+}
 
 int get_information_from_client(int cs)
 {
@@ -116,7 +126,7 @@ int get_information_from_client(int cs)
 
 
     int result_recv, number;
-    //char fb_msg[] = "put";
+
     char date_str[11], time_str[9];
 
     // get number message
@@ -133,12 +143,6 @@ int get_information_from_client(int cs)
 
         printf("NUMBER OF MESSAGE GOT IT: %d, %d bytes\n", ntohl(avd), result_recv);
 
-        //func to send ok
-        /* if (send_ok(cs) == -1){
-            printf("ERROR SENDOK FUNC\n");
-            return -1;
-        }
- */
     }
 
 
@@ -158,9 +162,7 @@ int get_information_from_client(int cs)
         convert_date(ntohl(avd), date_str);
 
         //printf(">>>%d, !!!%s\n", result_recv, date_str);
-
         //number = convert_str_to_int(avd);
-
 
         printf("DATE GOT IT: %s, %d bytes\n", date_str, result_recv);
 
@@ -207,8 +209,6 @@ int get_information_from_client(int cs)
         printf("TIME GOT IT: %s, %d bytes\n", time_str, result_recv);
 
         // func to write time 2 (need translate code htons or htonl)
-
-
     }
 
     // lendata 
@@ -225,32 +225,33 @@ int get_information_from_client(int cs)
 
     else{
         printf("LEN MSG GOT IT: %d, %d bytes\n", lenData, result_recv);
-
         // func to write len message or create value with need buffer;
-
 
     }
 
 
     // message
 
-    char *buffer_message = (char*)malloc(sizeof(char) * lenData + 1);
+    char *buffer_message = (char*)malloc(sizeof(char) * lenData);
 
     result_recv = recv(cs, buffer_message, sizeof(char) * lenData, 0);
     printf("MESSAGE GOT IT: %d bytes\n", result_recv);
     printf("%s\n", buffer_message);
-
-
+    //buffer_message + lenData = '\0';
+    
     if (send_ok(cs) == -1){
         printf("ERROR SENDOK FUNC\n");
         return -1;
     } 
 
-    //result_recv = recv(cs, );
+
+    strcat(buffer_message, "'\0'");
+    if (stop_word(cs, buffer_message, lenData) == 1){
+        return -1;
+    }
 
     printf("\n");
     free(int_recv_buffer);
-    //free(recv_buffer_PG);
     free(buffer_message);
 
     return 1;
@@ -340,7 +341,7 @@ int main()
                 
 
                 // mb error, need to write log
-                set_non_block_mode(cs);
+                //set_non_block_mode(cs);
 
 
                 printf("<<<get it accept\n");
@@ -361,10 +362,11 @@ int main()
                     int result_get = get_information_from_client(array_connectSockets[i]);
                     if (result_get == -1){
                         close(array_connectSockets[i]);
+                        printf("CLOSE SOCKET AND TCP CONNECT\n");
                         FD_CLR(array_connectSockets[i], &rfd);
                         //FD_CLR(array_connectSockets[i], &wfd);
                     }
-                    printf(">%d\n", result_get);
+                    //printf(">%d\n", result_get);
                     // FD_CLR(array_connectSockets[i], &rfd);
                     // FD_CLR(array_connectSockets[i], &wfd);
 
