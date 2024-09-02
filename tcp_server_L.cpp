@@ -11,7 +11,11 @@
 
 #define N 10
 #define PORT 9000
+#define GET_FLAG 1
+#define PUT_FLAG 2
 
+
+int PG_OPERATION = 0;
 
 
 int set_non_block_mode(int s)
@@ -29,13 +33,13 @@ int send_ok(int cs)
     const char ok_msg[] = "ok";
     int send_bytes;
 
-    send_bytes = send(cs, ok_msg, sizeof(ok_msg), 0);
+    send_bytes = send(cs, ok_msg, 2, 0);
     if (send_bytes < 0){
         printf("ERROR SEND OK MSG\n");
         return -1;
     }
     
-    printf("OK MSG SEND\n");
+    printf("OK MSG SEND %s, %d bytes\n", ok_msg, send_bytes);
     return 1;
 }
 
@@ -62,40 +66,58 @@ void convert_time(uint32_t number, char *time_str) {
 }
 
 
+int first_put_or_get(int cs)
+{   
+    char* recv_buffer_PG = (char*)malloc(sizeof(char) * 3);
+    int result_recv;
+
+    result_recv = recv(cs, recv_buffer_PG, 3, 0);
+    if (result_recv < 0){
+        printf("ERROR: PUT, GET\n");
+        return -1;
+    }
+
+    if (strcmp(recv_buffer_PG, "put") == 0){
+        printf("PUT IS ALL READY %s, %d bytes\n", recv_buffer_PG, result_recv);
+        return PUT_FLAG;
+    }
+
+    else if (strcmp(recv_buffer_PG, "get") == 0){
+        printf("GET IS ALL READY %s, %d bytes\n", recv_buffer_PG, result_recv);
+        return GET_FLAG;
+    }
+
+    printf("INCORRECT FB MSG\n");
+    
+    return -1;
+
+}
+
+
+
 int get_information_from_client(int cs)
 {
     //char* int_recv_buffer = (char*)malloc(sizeof(int));
-    char* recv_buffer_PG = (char*)malloc(sizeof(char) * 3); // or ..sizeof(char * 3)
+    //char* recv_buffer_PG = (char*)malloc(sizeof(char) * 3); // or ..sizeof(char * 3)
     
     // maybe need to change char to integer
+    printf("PG_OPERATION: %d\n",PG_OPERATION);
+    if (PG_OPERATION == 0){
+        PG_OPERATION++;
+        int res = first_put_or_get(cs);
+        if (res < 0){
+            return -1;
+        }
+    }
+
+
 
     char* int_recv_buffer = (char*)malloc(sizeof(int)); // or int* int_recv_buffer = (int*)malloc(sizeof(int));
 
 
     int result_recv, number;
-    char fb_msg[] = "put";
+    //char fb_msg[] = "put";
     char date_str[11], time_str[9];
-    
-    // send first msg PUT
-
-    if ((result_recv = recv(cs, recv_buffer_PG, (sizeof(char) * 3), 0)) < 0){
-        printf("ERROR PUT MESSAGE\n");
-        return -1;
-    }
-    
-    recv_buffer_PG[result_recv] = '\0';
-
-
-    if (strcmp(recv_buffer_PG, fb_msg) == 0){
-        printf("PUT GOT IT: %s\n", recv_buffer_PG);
-
-    }
-
-    else if (strcmp(recv_buffer_PG, "get")){
-        printf("GET GOT IT: %s\n", recv_buffer_PG);
-
-    }
-
 
     // get number message
 
@@ -103,8 +125,8 @@ int get_information_from_client(int cs)
 
     result_recv = recv(cs, &avd, sizeof(int), 0);
 
-    if (result_recv < 0){
-        printf("ERROR NUMBER MESSAGE\n");
+    if (result_recv <= 0){
+        printf("ERROR NUMBER MESSAGE: %d bytes\n", result_recv);
         return -1;
     }
     else{
@@ -125,7 +147,7 @@ int get_information_from_client(int cs)
     result_recv = recv(cs, &avd, sizeof(int), 0);
 
     //printf("%d\n", avd);
-    if (result_recv < 0){
+    if (result_recv <= 0){
         printf("ERROR GET DATE INFO\n");
         return -1;
     }
@@ -144,13 +166,6 @@ int get_information_from_client(int cs)
 
         // func to write data (need translate code htons or htonl)
 
-
-
-        // func to send ok
-     /* if (send_ok(cs) == -1){
-            printf("ERROR SENDOK FUNC\n");
-            return -1;
-        } */
 
     }
     
@@ -173,11 +188,6 @@ int get_information_from_client(int cs)
 
         // func to write time (need translate code htons or htonl)
 
-        // func to send ok
-        /* if (send_ok(cs) == -1){
-            printf("ERROR SENDOK FUNC\n");
-            return -1;
-        } */
 
     }
 
@@ -185,7 +195,7 @@ int get_information_from_client(int cs)
 
     result_recv = recv(cs, &avd, sizeof(int), 0);
 
-    if (result_recv < 0){
+    if (result_recv <= 0){
         printf("ERROR TIME 2 INFO\n");
         return -1;
     }
@@ -198,11 +208,6 @@ int get_information_from_client(int cs)
 
         // func to write time 2 (need translate code htons or htonl)
 
-        // func to send ok
-        /* if (send_ok(cs) == -1){
-            printf("ERROR SENDOK FUNC\n");
-            return -1;
-        } */
 
     }
 
@@ -213,7 +218,7 @@ int get_information_from_client(int cs)
     
     int lenData = ntohl(avd);
 
-    if (result_recv < 0){
+    if (result_recv <= 0){
         printf("ERROR LEN MSG\n");
         return -1;
     }
@@ -223,12 +228,6 @@ int get_information_from_client(int cs)
 
         // func to write len message or create value with need buffer;
 
-
-        // func to send ok
-        /* if (send_ok(cs) == -1){
-            printf("ERROR SENDOK FUNC\n");
-            return -1;
-        } */
 
     }
 
@@ -241,35 +240,21 @@ int get_information_from_client(int cs)
     printf("MESSAGE GOT IT: %d bytes\n", result_recv);
     printf("%s\n", buffer_message);
 
-    for (int i = 0; i < 2; i++){
-        if (send_ok(cs) == -1){
-                printf("ERROR SENDOK FUNC\n");
-                return -1;
-        } 
-    }
 
-
-
-    //close(cs);
-    //printf("SMT for commit!");
-    //printf("%s\n", int_recv_buffer);
-
+    if (send_ok(cs) == -1){
+        printf("ERROR SENDOK FUNC\n");
+        return -1;
+    } 
 
     //result_recv = recv(cs, );
 
-
+    printf("\n");
     free(int_recv_buffer);
-    free(recv_buffer_PG);
+    //free(recv_buffer_PG);
     free(buffer_message);
-    //s_close(cs);
-    // well 
+
     return 1;
-    
-    
 
-
-
-    // send number message
 
 
 }
@@ -326,11 +311,18 @@ int main()
         for (int i = 0; i < N; i++) {
             if (array_connectSockets[i] > 0) {
                 FD_SET(array_connectSockets[i], &rfd);
-                FD_SET(array_connectSockets[i], &wfd);
+                //FD_SET(array_connectSockets[i], &wfd);
                 if (maxDescriptor < array_connectSockets[i])
                     maxDescriptor = array_connectSockets[i];
             }
         }
+
+        // for (int i = 0; i < N; i++){
+        //     FD_SET(array_connectSockets[i], &rfd);
+        //     FD_SET(array_connectSockets[i], &wfd);
+        //     if (maxDescriptor < array_connectSockets[i])
+        //         maxDescriptor = array_connectSockets[i];
+        // }
 
         
         int result_select = select(maxDescriptor + 1, &rfd, &wfd, 0, &timeValue);
@@ -345,14 +337,15 @@ int main()
                 if (cs < 0){
                     printf("ERROR NOT ACCEPT FUNC\n");
                 }
+                
 
                 // mb error, need to write log
-                //set_non_block_mode(cs);
+                set_non_block_mode(cs);
 
 
                 printf("<<<get it accept\n");
                 
-
+                //maxDescriptor = connectSocket; 
                 // add new socket to array_connectSockets
                 array_connectSockets[count_arraySockets] = cs;
                 count_arraySockets++;
@@ -360,11 +353,18 @@ int main()
 
             }
 
-            for (int i = 0; i < N; i++){
+            for (int i = 0; i < count_arraySockets; i++){
                 if ((array_connectSockets[i] > 0) && (FD_ISSET(array_connectSockets[i], &rfd))){
                     // socket ready to read
-                    printf("ready to read\n");
-                    get_information_from_client(array_connectSockets[i]);
+                    printf("<<<%d\n", count_arraySockets);
+                    printf("ready to read: %d\n", i);
+                    int result_get = get_information_from_client(array_connectSockets[i]);
+                    if (result_get == -1){
+                        close(array_connectSockets[i]);
+                        FD_CLR(array_connectSockets[i], &rfd);
+                        //FD_CLR(array_connectSockets[i], &wfd);
+                    }
+                    printf(">%d\n", result_get);
                     // FD_CLR(array_connectSockets[i], &rfd);
                     // FD_CLR(array_connectSockets[i], &wfd);
 
