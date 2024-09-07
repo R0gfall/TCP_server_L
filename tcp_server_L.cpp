@@ -111,8 +111,6 @@ int stop_word(int cs, char* buffer, int lenData)
 
 int get_information_from_client(int cs)
 {
-    //char* int_recv_buffer = (char*)malloc(sizeof(int));
-    //char* recv_buffer_PG = (char*)malloc(sizeof(char) * 3); // or ..sizeof(char * 3)
     
     // maybe need to change char to integer
 
@@ -271,24 +269,8 @@ int get_information_from_client(int cs)
 
     return 1;
 
-
-
 }
 
-
-/* int output_to_file(FILE* file_name, char* buffer)
-{
-    
-    fprintf(file_name, "%s ", buffer);
-    return 1;
-} */
-
-
-/* int output_serv_info(int cs)
-{
-
-
-} */
 
 void get_client_info(int client_socket) {
     struct sockaddr_in client_addr;
@@ -336,8 +318,7 @@ int main()
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(PORT);
-    //addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(PORT);;
 
     int result_bind = bind(connectSocket, (struct sockaddr*) &addr, sizeof(addr));
 
@@ -370,13 +351,6 @@ int main()
             }
         }
 
-        // for (int i = 0; i < N; i++){
-        //     FD_SET(array_connectSockets[i], &rfd);
-        //     FD_SET(array_connectSockets[i], &wfd);
-        //     if (maxDescriptor < array_connectSockets[i])
-        //         maxDescriptor = array_connectSockets[i];
-        // }
-
         
         int result_select = select(maxDescriptor + 1, &rfd, &wfd, 0, &timeValue);
 
@@ -394,7 +368,7 @@ int main()
                 //get_client_info(cs);
 
                 // mb error, need to write log
-                //set_non_block_mode(cs);
+                set_non_block_mode(cs);
 
 
                 printf("<<<get it accept\n");
@@ -421,6 +395,8 @@ int main()
                         printf("CLOSE SOCKET AND TCP CONNECT\n");
                         fclose(fName);
                         FD_CLR(array_connectSockets[i], &rfd);
+                        close(connectSocket);
+                        return -1;
                         //FD_CLR(array_connectSockets[i], &wfd);
                     }
                     //printf(">%d\n", result_get);
