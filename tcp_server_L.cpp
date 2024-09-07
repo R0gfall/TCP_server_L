@@ -4,19 +4,23 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #define N 10
-#define PORT 9001
+#define PORT 9000
 #define GET_FLAG 1
 #define PUT_FLAG 2
 #define STOP_FLAG 1
 
 int PG_OPERATION = 0;
+FILE* fName;
 
+
+void get_client_info(int clientSocket);
 
 int set_non_block_mode(int s)
 {
@@ -111,6 +115,10 @@ int get_information_from_client(int cs)
     //char* recv_buffer_PG = (char*)malloc(sizeof(char) * 3); // or ..sizeof(char * 3)
     
     // maybe need to change char to integer
+
+    get_client_info(cs);
+
+
     printf("PG_OPERATION: %d\n",PG_OPERATION);
     if (PG_OPERATION == 0){
         PG_OPERATION++;
@@ -142,6 +150,7 @@ int get_information_from_client(int cs)
     else{
 
         printf("NUMBER OF MESSAGE GOT IT: %d, %d bytes\n", ntohl(avd), result_recv);
+        fprintf(fName, "%d ", ntohl(avd));
 
     }
 
@@ -166,6 +175,7 @@ int get_information_from_client(int cs)
 
         printf("DATE GOT IT: %s, %d bytes\n", date_str, result_recv);
 
+        fprintf(fName, "%s ", date_str);
         // func to write data (need translate code htons or htonl)
 
 
@@ -188,6 +198,7 @@ int get_information_from_client(int cs)
 
         printf("TIME GOT IT: %s, %d bytes\n", time_str, result_recv);
 
+        fprintf(fName, "%s ", time_str);
         // func to write time (need translate code htons or htonl)
 
 
@@ -208,6 +219,7 @@ int get_information_from_client(int cs)
 
         printf("TIME GOT IT: %s, %d bytes\n", time_str, result_recv);
 
+        fprintf(fName, "%s ", time_str);
         // func to write time 2 (need translate code htons or htonl)
     }
 
@@ -226,7 +238,7 @@ int get_information_from_client(int cs)
     else{
         printf("LEN MSG GOT IT: %d, %d bytes\n", lenData, result_recv);
         // func to write len message or create value with need buffer;
-
+        fprintf(fName, "%d ", lenData);
     }
 
 
@@ -237,6 +249,7 @@ int get_information_from_client(int cs)
     result_recv = recv(cs, buffer_message, sizeof(char) * lenData, 0);
     printf("MESSAGE GOT IT: %d bytes\n", result_recv);
     printf("%s\n", buffer_message);
+    //fprintf(fName, "%s\n", buffer_message);
     //buffer_message + lenData = '\0';
     
     if (send_ok(cs) == -1){
@@ -247,8 +260,10 @@ int get_information_from_client(int cs)
 
     strcat(buffer_message, "'\0'");
     if (stop_word(cs, buffer_message, lenData) == 1){
+        fprintf(fName, "%s\n", buffer_message);
         return -1;
     }
+    fprintf(fName, "%s\n", buffer_message);
 
     printf("\n");
     free(int_recv_buffer);
@@ -259,6 +274,43 @@ int get_information_from_client(int cs)
 
 
 }
+
+
+/* int output_to_file(FILE* file_name, char* buffer)
+{
+    
+    fprintf(file_name, "%s ", buffer);
+    return 1;
+} */
+
+
+/* int output_serv_info(int cs)
+{
+
+
+} */
+
+void get_client_info(int client_socket) {
+    struct sockaddr_in client_addr;
+    socklen_t addr_len = sizeof(client_addr);
+
+    // Получение информации о подключенном клиенте
+    if (getpeername(client_socket, (struct sockaddr*)&client_addr, &addr_len) == -1) {
+        perror("getpeername");
+        return;
+    }
+
+    // Извлечение IP-адреса и порта
+    char client_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, sizeof(client_ip));
+    int client_port = ntohs(client_addr.sin_port);
+
+    printf("Client IP: %s\n", client_ip);
+    printf("Client Port: %d\n", client_port);
+    fprintf(fName, "%s %d", client_ip, client_port);
+    
+}
+
 
 
 int main()
@@ -272,6 +324,7 @@ int main()
     int maxDescriptor = connectSocket;
     struct timeval timeValue = {1, 0};
     int count_arraySockets = 0;
+    fName = fopen("msg.txt", "w");
 
     connectSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (connectSocket < 0){
@@ -280,7 +333,6 @@ int main()
     }
     
     set_non_block_mode(connectSocket);
-
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
@@ -339,6 +391,7 @@ int main()
                     printf("ERROR NOT ACCEPT FUNC\n");
                 }
                 
+                //get_client_info(cs);
 
                 // mb error, need to write log
                 //set_non_block_mode(cs);
@@ -359,10 +412,14 @@ int main()
                     // socket ready to read
                     printf("<<<%d\n", count_arraySockets);
                     printf("ready to read: %d\n", i);
+
+
+
                     int result_get = get_information_from_client(array_connectSockets[i]);
                     if (result_get == -1){
                         close(array_connectSockets[i]);
                         printf("CLOSE SOCKET AND TCP CONNECT\n");
+                        fclose(fName);
                         FD_CLR(array_connectSockets[i], &rfd);
                         //FD_CLR(array_connectSockets[i], &wfd);
                     }
