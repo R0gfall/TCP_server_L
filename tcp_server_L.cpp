@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 #define N 10
-#define PORT 9000
+#define PORT 9001
 #define GET_FLAG 1
 #define PUT_FLAG 2
 #define STOP_FLAG 1
@@ -242,11 +242,41 @@ int get_information_from_client(int cs)
 
     // message
 
-    char *buffer_message = (char*)malloc(sizeof(char) * lenData);
+    //>>>>>>
+    // char *buffer_message = (char*)malloc(sizeof(char) * lenData);
 
-    result_recv = recv(cs, buffer_message, sizeof(char) * lenData, 0);
-    printf("MESSAGE GOT IT: %d bytes\n", result_recv);
-    printf("%s\n", buffer_message);
+    // result_recv = recv(cs, buffer_message, sizeof(char) * lenData, 0);
+    // printf("MESSAGE GOT IT: %d bytes\n", result_recv);
+    // printf("%s\n", buffer_message);
+
+    //>>>>>>
+
+    //----
+
+
+    char *buffer_message = (char*)malloc(sizeof(char) * lenData);
+    int rcv, curlen = 0;
+    do
+    {
+        int i;
+        rcv = recv(cs, buffer_message, sizeof(buffer_message), 0);
+        for (i = 0; i < rcv; i++)
+        {
+            if (buffer_message[i] == '\n')
+            return curlen;
+            curlen++;
+        }
+        if (curlen > 500000)
+        {
+            printf("input string too large\n");
+            return 500000;
+        }
+
+    } while (rcv > 0);
+    //----
+
+
+
     //fprintf(fName, "%s\n", buffer_message);
     //buffer_message + lenData = '\0';
     
@@ -396,7 +426,6 @@ int main()
                         fclose(fName);
                         FD_CLR(array_connectSockets[i], &rfd);
                         close(connectSocket);
-                        return -1;
                         //FD_CLR(array_connectSockets[i], &wfd);
                     }
                     //printf(">%d\n", result_get);
